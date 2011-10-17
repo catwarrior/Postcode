@@ -101,6 +101,7 @@ namespace IanFNelson.Postcode.Tests
         }
 
         [Test]
+        [ExpectedException(typeof(FormatException))]
         public void Parse_InvalidPartialPostCode_OriginalValueNotReturned()
         {
             // Arrange
