@@ -9,19 +9,19 @@ namespace IanFNelson.Postcode
     /// <remarks>
     /// For more information, see http://ianfnelson.com/blog/postcodestruct
     /// </remarks>
-    [Serializable()]
+    [Serializable]
     public struct Postcode
     {
-        private static string regexBS7666Outer =
+        private const string RegexBs7666Outer =
             "(?<outCode>[A-PR-UWYZ]([0-9]{{1,2}}|([A-HK-Y][0-9]|[A-HK-Y][0-9]([0-9]|[ABEHMNPRV-Y]))|[0-9][A-HJKS-UW]))";
-        private static string regexBS7666Inner = "(?<inCode>[0-9][ABD-HJLNP-UW-Z]{2})";
-        private static string regexBS7666Full = regexBS7666Outer + regexBS7666Inner;
-        private static string regexBS7666OuterStandAlone = String.Format("{0}\\s*$", regexBS7666Outer);
-        private static string regexBfpoOuter = "(?<outCode>BFPO)";
-        private static string regexBfpoInner = "(?<inCode>[0-9]{1,3})";
-        private static string regexBfpoFull = regexBfpoOuter + regexBfpoInner;
-        private static string regexBfpoOuterStandalone = String.Format("{0}\\s*$", regexBfpoOuter);
-        private static string[,] exceptionsToTheRule = 
+        private const string RegexBs7666Inner = "(?<inCode>[0-9][ABD-HJLNP-UW-Z]{2})";
+        private const string RegexBs7666Full = RegexBs7666Outer + RegexBs7666Inner;
+        private static readonly string RegexBs7666OuterStandAlone = String.Format("{0}\\s*$", RegexBs7666Outer);
+        private const string RegexBfpoOuter = "(?<outCode>BFPO)";
+        private const string RegexBfpoInner = "(?<inCode>[0-9]{1,3})";
+        private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner;
+        private static readonly string RegexBfpoOuterStandalone = String.Format("{0}\\s*$", RegexBfpoOuter);
+        private static readonly string[,] ExceptionsToTheRule = 
         {
             {"GIR","0AA"},      // Girobank
             {"SAN","TA1"},      // Santa Claus
@@ -74,7 +74,7 @@ namespace IanFNelson.Postcode
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "incode")]
         public static Postcode Parse(string value, bool incodeMandatory)
         {
-            Postcode p = new Postcode();
+            Postcode p;
             if (TryParse(value, out p, incodeMandatory))
                 return p;
 
@@ -113,7 +113,7 @@ namespace IanFNelson.Postcode
             result = new Postcode();
 
             // Copy the input before messing with it
-            string input = value;
+            var input = value;
 
             // Guard clause - check for null or empty string
             if (string.IsNullOrEmpty(input)) return false;
@@ -127,7 +127,7 @@ namespace IanFNelson.Postcode
             #region BS7666 Matching
 
             // Try to match full standard postcode
-            Match fullMatch = Regex.Match(input, regexBS7666Full);
+            Match fullMatch = Regex.Match(input, RegexBs7666Full);
             if (fullMatch.Success)
             {
                 result.OutCode = fullMatch.Groups["outCode"].Value;
@@ -136,7 +136,7 @@ namespace IanFNelson.Postcode
             }
 
             // Try to match outer standard postcode only
-            Match outerMatch = Regex.Match(input, regexBS7666OuterStandAlone);
+            Match outerMatch = Regex.Match(input, RegexBs7666OuterStandAlone);
             if (outerMatch.Success)
             {
                 if (incodeMandatory) return false;
@@ -150,7 +150,7 @@ namespace IanFNelson.Postcode
             #region BFPO Matching
 
             // Try to match full BFPO postcode
-            Match bfpoFullMatch = Regex.Match(input, regexBfpoFull);
+            Match bfpoFullMatch = Regex.Match(input, RegexBfpoFull);
             if (bfpoFullMatch.Success)
             {
                 result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
@@ -159,7 +159,7 @@ namespace IanFNelson.Postcode
             }
 
             // Try to match outer BFPO postcode
-            Match bfpoOuterMatch = Regex.Match(input, regexBfpoOuterStandalone);
+            Match bfpoOuterMatch = Regex.Match(input, RegexBfpoOuterStandalone);
             if (bfpoOuterMatch.Success)
             {
                 if (incodeMandatory) return false;
@@ -173,22 +173,22 @@ namespace IanFNelson.Postcode
             #region Exceptions to the rule matching
 
             // Loop through exceptions to the rule
-            for (int i = 0; i < exceptionsToTheRule.GetLength(0); i++)
+            for (int i = 0; i < ExceptionsToTheRule.GetLength(0); i++)
             {
                 // Check for a full match
-                if (input == string.Concat(exceptionsToTheRule[i, 0], exceptionsToTheRule[i, 1]))
+                if (input == string.Concat(ExceptionsToTheRule[i, 0], ExceptionsToTheRule[i, 1]))
                 {
-                    result.OutCode = exceptionsToTheRule[i, 0];
-                    result.InCode = exceptionsToTheRule[i, 1];
+                    result.OutCode = ExceptionsToTheRule[i, 0];
+                    result.InCode = ExceptionsToTheRule[i, 1];
                     return true;
                 }
 
                 // Check for partial match only
-                if (input == exceptionsToTheRule[i, 0])
+                if (input == ExceptionsToTheRule[i, 0])
                 {
                     if (incodeMandatory) return false;
 
-                    result.OutCode = exceptionsToTheRule[i, 0];
+                    result.OutCode = ExceptionsToTheRule[i, 0];
                     return true;
                 }
             }
@@ -204,10 +204,7 @@ namespace IanFNelson.Postcode
         /// <returns></returns>
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(InCode))
-                return OutCode;
-
-            return string.Concat(OutCode, " ", InCode);
+            return string.IsNullOrEmpty(InCode) ? OutCode : string.Concat(OutCode, " ", InCode);
         }
     }
 }
