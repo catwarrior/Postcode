@@ -71,7 +71,6 @@ namespace IanFNelson.Postcode
         /// <exception cref="FormatException">
         /// If the passed string cannot be parsed as a UK postcode
         /// </exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "incode")]
         public static Postcode Parse(string value, bool incodeMandatory)
         {
             Postcode p;
@@ -106,7 +105,6 @@ namespace IanFNelson.Postcode
         /// <returns>
         /// Boolean indicating whether the string was successfully parsed as a UK Postcode
         /// </returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "incode"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
         public static bool TryParse(string value, out Postcode result, bool incodeMandatory)
         {
             // Set output to new Postcode
