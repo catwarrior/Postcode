@@ -3,14 +3,9 @@ using NUnit.Framework;
 
 namespace IanFNelson.Postcode.Tests
 {
-    /// <summary>
-    /// Unit tests provided by Paul Mortimer - paulrmortimer@gmail.com
-    /// </summary>
-
     [TestFixture]
-    public class PostCodeTests
+    public class FormatTests
     {
-
         #region Test Invalid First letters Q,V,X
 
         [Test]
@@ -81,54 +76,6 @@ namespace IanFNelson.Postcode.Tests
 
             // Act
             var actual = Postcode.Parse(postcodeString);
-        }
-
-        #endregion
-
-        #region OutCode tests
-
-        [Test]
-        public void Parse_ValidPartialPostCode_ReturnInputValueOutCode()
-        {
-            // Arrange
-            const string expected = "PO8";
-
-            // Act
-            var actual = Postcode.Parse(expected);
-
-            // Assert
-            Assert.AreEqual(expected, actual.OutCode);
-        }
-
-        [Test]
-        [ExpectedException(typeof(FormatException))]
-        public void Parse_InvalidPartialPostCode_OriginalValueNotReturned()
-        {
-            // Arrange
-            const string expected = "PZ7";
-
-            // Act
-            var actual = Postcode.Parse(expected);
-
-            // Assert
-            Assert.AreNotEqual(expected, actual.OutCode);
-        }
-
-        #endregion
-
-        #region Valid data tests
-
-        [Test]
-        public void Parse_ValidPostCode_ReturnInputValue()
-        {
-            // Arrange
-            const string expected = "PO8 5PQ";
-
-            // Act
-            var actual = Postcode.Parse(expected);
-
-            // Assert
-            Assert.AreEqual(expected, actual.ToString());
         }
 
         #endregion
