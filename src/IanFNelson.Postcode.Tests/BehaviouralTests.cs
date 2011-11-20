@@ -60,6 +60,33 @@ namespace IanFNelson.Postcode.Tests
             Assert.Throws<FormatException>(() => Postcode.Parse(input));
         }
 
+        [TestCase("M1 1AAA", PostcodeParseOptions.None)]
+        [TestCase("BFPO 1234A", PostcodeParseOptions.MatchBfpo)]
+        [TestCase("TDCU 1ZZA", PostcodeParseOptions.MatchOverseasTerritories)]
+        [TestCase("S81A", PostcodeParseOptions.IncodeOptional)]
+        public void Parse_ValidPostcodeAtStartOfLongerString_IsInvalid(string invalidPostcode,
+                                                                       PostcodeParseOptions options)
+        {
+            // Act
+            Assert.Throws<FormatException>(() => Postcode.Parse(invalidPostcode, options),
+                                           string.Format("No exception thrown when parsing {0}", invalidPostcode));
+        }
+
+        [TestCase("LS25 6LG", PostcodeParseOptions.None, "LS25 6LG")]
+        [TestCase("LS25", PostcodeParseOptions.IncodeOptional, "LS25")]
+        public void ToString_ReturnsStringRepresentationOfPostcode(string input, PostcodeParseOptions options,
+                                                                   string expectedToString)
+        {
+            // Arrange
+            Postcode postcode = Postcode.Parse(input, options);
+
+            // Act
+            string actualToString = postcode.ToString();
+
+            // Assert
+            Assert.That(actualToString, Is.EqualTo(expectedToString));
+        }
+
         [Test]
         public void Parse_BfpoAllowed_IsValid()
         {
@@ -218,16 +245,6 @@ namespace IanFNelson.Postcode.Tests
 
             // Act
             Assert.Throws<FormatException>(() => Postcode.Parse(santaPostcode));
-        }
-
-        [TestCase("M1 1AAA", PostcodeParseOptions.None)]
-        [TestCase("BFPO 1234A", PostcodeParseOptions.MatchBfpo)]
-        [TestCase("TDCU 1ZZA", PostcodeParseOptions.MatchOverseasTerritories)]
-        [TestCase("S81A", PostcodeParseOptions.IncodeOptional)]
-        public void Parse_ValidPostcodeAtStartOfLongerString_IsInvalid(string invalidPostcode, PostcodeParseOptions options)
-        {
-            // Act
-            Assert.Throws<FormatException>(() => Postcode.Parse(invalidPostcode, options), string.Format("No exception thrown when parsing {0}", invalidPostcode));
         }
 
         [Test]
