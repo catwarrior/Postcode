@@ -12,6 +12,7 @@ namespace IanFNelson.Postcode.Tests
         [TestCase("GIR 0AA", "GIR", "0AA")]
         [TestCase("LS25", "LS25", null)]
         [TestCase("GIR", "GIR", null)]
+        [TestCase("SAN", "SAN", null)]
         [TestCase("BFPO", "BFPO", null)]
         [TestCase("TDCU", "TDCU", null)]
         public void Parse_CanCombineOptions(string input, string expectedOutcode, string expectedIncode)
@@ -62,7 +63,7 @@ namespace IanFNelson.Postcode.Tests
             const string girobankPostcode = "GIR 0AA";
 
             // Act
-            Postcode output = Postcode.Parse(girobankPostcode);
+            Postcode output = Postcode.Parse(girobankPostcode, PostcodeParseOptions.MatchGirobank);
 
             // Assert
             Assert.That(output.OutCode, Is.EqualTo("GIR"));
@@ -107,14 +108,35 @@ namespace IanFNelson.Postcode.Tests
         }
 
         [Test]
-        public void Parse_NonWhitespaceNonAlphanumericSurroundsInput_IsInvalid()
+        public void Parse_NonWhitespaceNonAlphanumericSurroundsInput_IsStripped()
         {
             // Arrange
             const string input = "%LS25 6LG\"";
-            Postcode output;
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("LS25"));
+            Assert.That(output.InCode, Is.EqualTo("6LG"));
+        }
+
+        [TestCase("LS256LG", "LS25", "6LG")]
+        [TestCase("LS25 6LG")]
+        [TestCase("S1  1AA")]
+        [TestCase("LS25-6LG")]
+        [TestCase("S1--1AA")]
+        [TestCase("LS25_6LG", "LS25", "6LG")]
+        [TestCase("LS25*6LG", "LS25", "6LG")]
+        [TestCase("LS25%6LG", "LS25", "6LG")]
+        public void Parse_InputContainsVariousSeparatorsBetweenIncodeAndOutcode_AllAreValid(string input, string expectedOutcode, string expectedIncode)
+        {
+            // Act
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo(expectedOutcode));
+            Assert.That(output.InCode, Is.EqualTo(expectedIncode));
         }
 
         [Test]
@@ -139,6 +161,17 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
+            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+        }
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase(" ")]
+        public void Parse_NullOrEmptyOrWhitespaceInput_NotValid(string input)
+        {
+            // Arrange
+            Postcode output;
+
             var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
         }
 
@@ -176,8 +209,8 @@ namespace IanFNelson.Postcode.Tests
             Postcode output = Postcode.Parse(santaPostcode, PostcodeParseOptions.MatchSanta);
 
             // Assert
-            Assert.That(output.OutCode, Is.EqualTo("TDCU"));
-            Assert.That(output.InCode, Is.EqualTo("1ZZ"));
+            Assert.That(output.OutCode, Is.EqualTo("SAN"));
+            Assert.That(output.InCode, Is.EqualTo("TA1"));
         }
 
         [Test]

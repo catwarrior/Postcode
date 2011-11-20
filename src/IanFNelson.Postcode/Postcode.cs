@@ -21,10 +21,8 @@ namespace IanFNelson.Postcode
         private const string RegexBfpoInner = "(?<inCode>[0-9]{1,4})";
         private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner;
         private static readonly string RegexBfpoOuterStandalone = String.Format("{0}\\s*$", RegexBfpoOuter);
-        private static readonly string[,] ExceptionsToTheRule = 
+        private static readonly string[,] OverseasTerritories = 
         {
-            {"GIR","0AA"},      // Girobank
-            {"SAN","TA1"},      // Santa Claus
             {"ASCN","1ZZ"},     // Ascension Island
             {"BIQQ","1ZZ"},     // British Antarctic Territory
             {"BBND","1ZZ"},     // British Indian Ocean Territory
@@ -109,8 +107,8 @@ namespace IanFNelson.Postcode
             // Copy the input before messing with it
             var input = value;
 
-            // Guard clause - check for null or empty string
-            if (string.IsNullOrEmpty(input)) return false;
+            // Guard clause - check for null or whitespace
+            if (string.IsNullOrWhiteSpace(input)) return false;
 
             // uppercase input and strip undesirable characters
             input = Regex.Replace(input.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
@@ -136,42 +134,83 @@ namespace IanFNelson.Postcode
                 return true;
             }
 
-            // Try to match full BFPO postcode
-            Match bfpoFullMatch = Regex.Match(input, RegexBfpoFull);
-            if (bfpoFullMatch.Success)
+            if ((options & PostcodeParseOptions.MatchBfpo) != PostcodeParseOptions.None)
             {
-                result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
-                result.InCode = bfpoFullMatch.Groups["inCode"].Value;
-                return true;
-            }
 
-            // Try to match outer BFPO postcode
-            Match bfpoOuterMatch = Regex.Match(input, RegexBfpoOuterStandalone);
-            if (bfpoOuterMatch.Success)
-            {
-                if (incodeMandatory) return false;
-
-                result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
-                return true;
-            }
-
-            // Loop through exceptions to the rule
-            for (int i = 0; i < ExceptionsToTheRule.GetLength(0); i++)
-            {
-                // Check for a full match
-                if (input == string.Concat(ExceptionsToTheRule[i, 0], ExceptionsToTheRule[i, 1]))
+                // Try to match full BFPO postcode
+                Match bfpoFullMatch = Regex.Match(input, RegexBfpoFull);
+                if (bfpoFullMatch.Success)
                 {
-                    result.OutCode = ExceptionsToTheRule[i, 0];
-                    result.InCode = ExceptionsToTheRule[i, 1];
+                    result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
+                    result.InCode = bfpoFullMatch.Groups["inCode"].Value;
                     return true;
                 }
 
-                // Check for partial match only
-                if (input == ExceptionsToTheRule[i, 0])
+                // Try to match outer BFPO postcode
+                Match bfpoOuterMatch = Regex.Match(input, RegexBfpoOuterStandalone);
+                if (bfpoOuterMatch.Success)
                 {
                     if (incodeMandatory) return false;
 
-                    result.OutCode = ExceptionsToTheRule[i, 0];
+                    result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
+                    return true;
+                }
+            }
+
+            if ((options & PostcodeParseOptions.MatchOverseasTerritories) != PostcodeParseOptions.None)
+            {
+                // Loop through exceptions to the rule
+                for (int i = 0; i < OverseasTerritories.GetLength(0); i++)
+                {
+                    // Check for a full match
+                    if (input == string.Concat(OverseasTerritories[i, 0], OverseasTerritories[i, 1]))
+                    {
+                        result.OutCode = OverseasTerritories[i, 0];
+                        result.InCode = OverseasTerritories[i, 1];
+                        return true;
+                    }
+
+                    // Check for partial match only
+                    if (input == OverseasTerritories[i, 0])
+                    {
+                        if (incodeMandatory) return false;
+
+                        result.OutCode = OverseasTerritories[i, 0];
+                        return true;
+                    }
+                }
+            }
+
+            if ((options & PostcodeParseOptions.MatchGirobank) != PostcodeParseOptions.None)
+            {
+                if (input == "GIR0AA")
+                {
+                    result.OutCode = "GIR";
+                    result.InCode = "0AA";
+                    return true;
+                }
+
+                if (input == "GIR")
+                {
+                    if (incodeMandatory) return false;
+                    result.OutCode = "GIR";
+                    return true;
+                }
+            }
+
+            if ((options & PostcodeParseOptions.MatchSanta) != PostcodeParseOptions.None)
+            {
+                if (input == "SANTA1")
+                {
+                    result.OutCode = "SAN";
+                    result.InCode = "TA1";
+                    return true;
+                }
+
+                if (input == "SAN")
+                {
+                    if (incodeMandatory) return false;
+                    result.OutCode = "SAN";
                     return true;
                 }
             }
