@@ -115,50 +115,18 @@ namespace IanFNelson.Postcode
             // uppercase input and strip undesirable characters
             input = Regex.Replace(input.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
 
-            if (TryParseBs7666(input, options, ref result)) return true;
-
-            if (TryParseBfpo(input, options, ref result)) return true;
-
-            if (TryParseOverseasTerritories(input, options, ref result)) return true;
-
-            if (TryParseGiroBank(input, options, ref result)) return true;
-
-            if (TryParseSanta(input, options, ref result)) return true;
-
-            return false;
-        }
-
-        private static bool TryParseBfpo(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
-        {
-            if ((options & PostcodeParseOptions.MatchBfpo) == PostcodeParseOptions.None) return false;
-
-            // Try to match full BFPO postcode
-            Match bfpoFullMatch = Regex.Match(sanitizedInput, RegexBfpoFull);
-            if (bfpoFullMatch.Success)
-            {
-                result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
-                result.InCode = bfpoFullMatch.Groups["inCode"].Value;
-                return true;
-            }
-
-            // Try to match outer BFPO postcode
-            if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
-            {
-                Match bfpoOuterMatch = Regex.Match(sanitizedInput, RegexBfpoOuterStandalone);
-                if (bfpoOuterMatch.Success)
-                {
-                    result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
-                    return true;
-                }
-            }
-
-            return false;
+            // Work through different options in turn until we have a match.
+            return (TryParseBs7666(input, options, ref result) ||
+                    TryParseBfpo(input, options, ref result) ||
+                    TryParseOverseasTerritories(input, options, ref result) ||
+                    TryParseGiroBank(input, options, ref result) ||
+                    TryParseSanta(input, options, ref result));
         }
 
         private static bool TryParseBs7666(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
         {
             // Try to match full standard postcode
-            Match fullMatch = Regex.Match(sanitizedInput, RegexBs7666Full);
+            var fullMatch = Regex.Match(sanitizedInput, RegexBs7666Full);
             if (fullMatch.Success)
             {
                 result.OutCode = fullMatch.Groups["outCode"].Value;
@@ -169,13 +137,40 @@ namespace IanFNelson.Postcode
             // Try to match outer standard postcode only
             if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
             {
-                Match outerMatch = Regex.Match(sanitizedInput, RegexBs7666OuterStandAlone);
+                var outerMatch = Regex.Match(sanitizedInput, RegexBs7666OuterStandAlone);
                 if (outerMatch.Success)
                 {
                     result.OutCode = outerMatch.Groups["outCode"].Value;
                     return true;
                 }
             }
+            return false;
+        }
+
+        private static bool TryParseBfpo(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
+        {
+            if ((options & PostcodeParseOptions.MatchBfpo) == PostcodeParseOptions.None) return false;
+
+            // Try to match full BFPO postcode
+            var bfpoFullMatch = Regex.Match(sanitizedInput, RegexBfpoFull);
+            if (bfpoFullMatch.Success)
+            {
+                result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
+                result.InCode = bfpoFullMatch.Groups["inCode"].Value;
+                return true;
+            }
+
+            // Try to match outer BFPO postcode
+            if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
+            {
+                var bfpoOuterMatch = Regex.Match(sanitizedInput, RegexBfpoOuterStandalone);
+                if (bfpoOuterMatch.Success)
+                {
+                    result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
+                    return true;
+                }
+            }
+
             return false;
         }
 
