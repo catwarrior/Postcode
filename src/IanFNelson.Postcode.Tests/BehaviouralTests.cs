@@ -18,11 +18,11 @@ namespace IanFNelson.Postcode.Tests
         public void Parse_CanCombineOptions(string input, string expectedOutcode, string expectedIncode)
         {
             // Arrange
-            PostcodeParseOptions options = PostcodeParseOptions.IncodeOptional ^
-                                           PostcodeParseOptions.MatchBfpo ^
-                                           PostcodeParseOptions.MatchGirobank ^
-                                           PostcodeParseOptions.MatchOverseasTerritories ^
-                                           PostcodeParseOptions.MatchSanta;
+            const PostcodeParseOptions options = PostcodeParseOptions.IncodeOptional ^
+                                                 PostcodeParseOptions.MatchBfpo ^
+                                                 PostcodeParseOptions.MatchGirobank ^
+                                                 PostcodeParseOptions.MatchOverseasTerritories ^
+                                                 PostcodeParseOptions.MatchSanta;
 
             // Act
             Postcode output = Postcode.Parse(input, options);
@@ -30,6 +30,34 @@ namespace IanFNelson.Postcode.Tests
             // Assert
             Assert.That(output.InCode, Is.EqualTo(expectedIncode));
             Assert.That(output.OutCode, Is.EqualTo(expectedOutcode));
+        }
+
+        [TestCase("LS256LG", "LS25", "6LG")]
+        [TestCase("LS25 6LG", "LS25", "6LG")]
+        [TestCase("S1  1AA", "S1", "1AA")]
+        [TestCase("LS25-6LG", "LS25", "6LG")]
+        [TestCase("S1--1AA", "S1", "1AA")]
+        [TestCase("LS25_6LG", "LS25", "6LG")]
+        [TestCase("LS25*6LG", "LS25", "6LG")]
+        [TestCase("LS25%6LG", "LS25", "6LG")]
+        public void Parse_InputContainsVariousSeparatorsBetweenIncodeAndOutcode_AllAreValid(string input,
+                                                                                            string expectedOutcode,
+                                                                                            string expectedIncode)
+        {
+            // Act
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo(expectedOutcode));
+            Assert.That(output.InCode, Is.EqualTo(expectedIncode));
+        }
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase(" ")]
+        public void Parse_NullOrEmptyOrWhitespaceInput_NotValid(string input)
+        {
+            Assert.Throws<FormatException>(() => Postcode.Parse(input));
         }
 
         [Test]
@@ -53,7 +81,7 @@ namespace IanFNelson.Postcode.Tests
             const string bfpoPostcode = "BFPO 805";
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(bfpoPostcode));
+            Assert.Throws<FormatException>(() => Postcode.Parse(bfpoPostcode));
         }
 
         [Test]
@@ -77,7 +105,7 @@ namespace IanFNelson.Postcode.Tests
             const string girobankPostcode = "GIR 0AA";
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(girobankPostcode));
+            Assert.Throws<FormatException>(() => Postcode.Parse(girobankPostcode));
         }
 
         [Test]
@@ -87,10 +115,9 @@ namespace IanFNelson.Postcode.Tests
             const string input = "QS81 8SH";
             // "S81 8SH" is valid. "QS81 8SH" looks valid at first glance, 
             //  but isn't as postcodes can't start with Q.
-            Postcode output;
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+            Assert.Throws<FormatException>(() => Postcode.Parse(input));
         }
 
         [Test]
@@ -121,24 +148,6 @@ namespace IanFNelson.Postcode.Tests
             Assert.That(output.InCode, Is.EqualTo("6LG"));
         }
 
-        [TestCase("LS256LG", "LS25", "6LG")]
-        [TestCase("LS25 6LG")]
-        [TestCase("S1  1AA")]
-        [TestCase("LS25-6LG")]
-        [TestCase("S1--1AA")]
-        [TestCase("LS25_6LG", "LS25", "6LG")]
-        [TestCase("LS25*6LG", "LS25", "6LG")]
-        [TestCase("LS25%6LG", "LS25", "6LG")]
-        public void Parse_InputContainsVariousSeparatorsBetweenIncodeAndOutcode_AllAreValid(string input, string expectedOutcode, string expectedIncode)
-        {
-            // Act
-            Postcode output = Postcode.Parse(input);
-
-            // Assert
-            Assert.That(output.OutCode, Is.EqualTo(expectedOutcode));
-            Assert.That(output.InCode, Is.EqualTo(expectedIncode));
-        }
-
         [Test]
         public void Parse_OutcodeOnlyPassedIncodeOptionalSet_IsValid()
         {
@@ -158,21 +167,9 @@ namespace IanFNelson.Postcode.Tests
         {
             // Arrange
             const string input = "LS25";
-            Postcode output;
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
-        }
-
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase(" ")]
-        public void Parse_NullOrEmptyOrWhitespaceInput_NotValid(string input)
-        {
-            // Arrange
-            Postcode output;
-
-            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+            Assert.Throws<FormatException>(() => Postcode.Parse(input));
         }
 
         [Test]
@@ -196,7 +193,7 @@ namespace IanFNelson.Postcode.Tests
             const string overseasTerritoryPostcode = "TDCU 1ZZ";
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(overseasTerritoryPostcode));
+            Assert.Throws<FormatException>(() => Postcode.Parse(overseasTerritoryPostcode));
         }
 
         [Test]
@@ -220,7 +217,7 @@ namespace IanFNelson.Postcode.Tests
             const string santaPostcode = "SAN TA1";
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(santaPostcode));
+            Assert.Throws<FormatException>(() => Postcode.Parse(santaPostcode));
         }
 
         [Test]
@@ -229,10 +226,9 @@ namespace IanFNelson.Postcode.Tests
             // Arrange
             const string input = "M1 1AAA";
             // "M1 1AA" is valid. "M1 1AAA" is not.
-            Postcode output;
 
             // Act
-            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+            Assert.Throws<FormatException>(() => Postcode.Parse(input));
         }
 
         [Test]
