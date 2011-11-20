@@ -17,11 +17,12 @@ namespace IanFNelson.Postcode
 
         private const string RegexBs7666Inner = "(?<inCode>[0-9][ABD-HJLNP-UW-Z]{2})";
         private const string RegexBs7666Full = RegexBs7666Outer + RegexBs7666Inner + "$";
+        private const string RegexBs7666OuterStandAlone = RegexBs7666Outer + "$";
+
         private const string RegexBfpoOuter = "(?<outCode>BFPO)";
         private const string RegexBfpoInner = "(?<inCode>[0-9]{1,4})";
         private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner + "$";
-        private static readonly string RegexBs7666OuterStandAlone = String.Format("{0}\\s*$", RegexBs7666Outer);
-        private static readonly string RegexBfpoOuterStandalone = String.Format("{0}\\s*$", RegexBfpoOuter);
+        private const string RegexBfpoOuterStandalone = RegexBfpoOuter + "$";
 
         private static readonly string[,] OverseasTerritories =
             {
@@ -110,7 +111,7 @@ namespace IanFNelson.Postcode
             if (string.IsNullOrWhiteSpace(value)) return false;
 
             // Copy the input before messing with it
-            var input = value;
+            string input = value;
 
             // uppercase input and strip undesirable characters
             input = Regex.Replace(input.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
@@ -126,7 +127,7 @@ namespace IanFNelson.Postcode
         private static bool TryParseBs7666(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
         {
             // Try to match full standard postcode
-            var fullMatch = Regex.Match(sanitizedInput, RegexBs7666Full);
+            Match fullMatch = Regex.Match(sanitizedInput, RegexBs7666Full);
             if (fullMatch.Success)
             {
                 result.OutCode = fullMatch.Groups["outCode"].Value;
@@ -137,7 +138,7 @@ namespace IanFNelson.Postcode
             // Try to match outer standard postcode only
             if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
             {
-                var outerMatch = Regex.Match(sanitizedInput, RegexBs7666OuterStandAlone);
+                Match outerMatch = Regex.Match(sanitizedInput, RegexBs7666OuterStandAlone);
                 if (outerMatch.Success)
                 {
                     result.OutCode = outerMatch.Groups["outCode"].Value;
@@ -152,7 +153,7 @@ namespace IanFNelson.Postcode
             if ((options & PostcodeParseOptions.MatchBfpo) == PostcodeParseOptions.None) return false;
 
             // Try to match full BFPO postcode
-            var bfpoFullMatch = Regex.Match(sanitizedInput, RegexBfpoFull);
+            Match bfpoFullMatch = Regex.Match(sanitizedInput, RegexBfpoFull);
             if (bfpoFullMatch.Success)
             {
                 result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
@@ -163,7 +164,7 @@ namespace IanFNelson.Postcode
             // Try to match outer BFPO postcode
             if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
             {
-                var bfpoOuterMatch = Regex.Match(sanitizedInput, RegexBfpoOuterStandalone);
+                Match bfpoOuterMatch = Regex.Match(sanitizedInput, RegexBfpoOuterStandalone);
                 if (bfpoOuterMatch.Success)
                 {
                     result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
