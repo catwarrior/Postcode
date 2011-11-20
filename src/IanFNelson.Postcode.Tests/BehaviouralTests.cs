@@ -42,8 +42,8 @@ namespace IanFNelson.Postcode.Tests
             Postcode output = Postcode.Parse(bfpoPostcode, PostcodeParseOptions.MatchBfpo);
 
             // Assert
-            Assert.That(output.OutCode, Is.EqualTo("TDCU"));
-            Assert.That(output.InCode, Is.EqualTo("1ZZ"));
+            Assert.That(output.OutCode, Is.EqualTo("BFPO"));
+            Assert.That(output.InCode, Is.EqualTo("805"));
         }
 
         [Test]
