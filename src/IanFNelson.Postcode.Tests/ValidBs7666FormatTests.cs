@@ -34,7 +34,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));
@@ -63,7 +63,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));
@@ -92,7 +92,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));
@@ -121,7 +121,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));
@@ -150,7 +150,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));
@@ -179,7 +179,7 @@ namespace IanFNelson.Postcode.Tests
             Postcode output;
 
             // Act
-            bool result = Postcode.TryParse(input, out output, true);
+            bool result = Postcode.TryParse(input, out output);
 
             // Assert
             Assert.That(result, Is.True, string.Format("Unable to parse {0} as valid postcode", input));

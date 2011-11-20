@@ -18,7 +18,7 @@ namespace IanFNelson.Postcode
         private const string RegexBs7666Full = RegexBs7666Outer + RegexBs7666Inner;
         private static readonly string RegexBs7666OuterStandAlone = String.Format("{0}\\s*$", RegexBs7666Outer);
         private const string RegexBfpoOuter = "(?<outCode>BFPO)";
-        private const string RegexBfpoInner = "(?<inCode>[0-9]{1,3})";
+        private const string RegexBfpoInner = "(?<inCode>[0-9]{1,4})";
         private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner;
         private static readonly string RegexBfpoOuterStandalone = String.Format("{0}\\s*$", RegexBfpoOuter);
         private static readonly string[,] ExceptionsToTheRule = 
@@ -57,24 +57,22 @@ namespace IanFNelson.Postcode
         /// <remarks>Using this overload, the inner code is not mandatory.</remarks>
         public static Postcode Parse(string value)
         {
-            return Parse(value, false);
+            return Parse(value, PostcodeParseOptions.None);
         }
 
         /// <summary>
         /// Parses a string as a Postcode.
         /// </summary>
         /// <param name="value">String to be parsed</param>
-        /// <param name="incodeMandatory">
-        /// Indicates that the string passed must include a valid inner code.
-        /// </param>
+        /// <param name="options"></param>
         /// <returns>Postcode object</returns>
         /// <exception cref="FormatException">
         /// If the passed string cannot be parsed as a UK postcode
         /// </exception>
-        public static Postcode Parse(string value, bool incodeMandatory)
+        public static Postcode Parse(string value, PostcodeParseOptions options)
         {
             Postcode p;
-            if (TryParse(value, out p, incodeMandatory))
+            if (TryParse(value, out p, options))
                 return p;
 
             throw new FormatException();
@@ -91,7 +89,7 @@ namespace IanFNelson.Postcode
         /// <remarks>Using this overload, the inner code is not mandatory.</remarks>
         public static bool TryParse(string value, out Postcode result)
         {
-            return TryParse(value, out result, false);
+            return TryParse(value, out result, PostcodeParseOptions.None);
         }
 
         /// <summary>
@@ -99,13 +97,11 @@ namespace IanFNelson.Postcode
         /// </summary>
         /// <param name="value">String to be parsed</param>
         /// <param name="result">Postcode object</param>
-        /// <param name="incodeMandatory">
-        /// Indicates that the string passed must include a valid inner code.
-        /// </param>
+        /// <param name="options"></param>
         /// <returns>
         /// Boolean indicating whether the string was successfully parsed as a UK Postcode
         /// </returns>
-        public static bool TryParse(string value, out Postcode result, bool incodeMandatory)
+        public static bool TryParse(string value, out Postcode result, PostcodeParseOptions options)
         {
             // Set output to new Postcode
             result = new Postcode();
@@ -119,10 +115,7 @@ namespace IanFNelson.Postcode
             // uppercase input and strip undesirable characters
             input = Regex.Replace(input.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
 
-            // guard clause - input is more than seven characters
-            if (input.Length > 7) return false;
-
-            #region BS7666 Matching
+            bool incodeMandatory = (options & PostcodeParseOptions.IncodeOptional) == PostcodeParseOptions.None;
 
             // Try to match full standard postcode
             Match fullMatch = Regex.Match(input, RegexBs7666Full);
@@ -143,10 +136,6 @@ namespace IanFNelson.Postcode
                 return true;
             }
 
-            #endregion
-
-            #region BFPO Matching
-
             // Try to match full BFPO postcode
             Match bfpoFullMatch = Regex.Match(input, RegexBfpoFull);
             if (bfpoFullMatch.Success)
@@ -165,10 +154,6 @@ namespace IanFNelson.Postcode
                 result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
                 return true;
             }
-
-            #endregion
-
-            #region Exceptions to the rule matching
 
             // Loop through exceptions to the rule
             for (int i = 0; i < ExceptionsToTheRule.GetLength(0); i++)
@@ -190,8 +175,6 @@ namespace IanFNelson.Postcode
                     return true;
                 }
             }
-
-            #endregion
 
             return false;
         }

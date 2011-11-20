@@ -45,7 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BehaviouralTests.cs" />
+    <Compile Include="BfpoFormatTests.cs" />
     <Compile Include="InvalidBs7666FormatTests.cs" />
+    <Compile Include="OverseasTerritoryFormatTests.cs" />
     <Compile Include="ValidBs7666FormatTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

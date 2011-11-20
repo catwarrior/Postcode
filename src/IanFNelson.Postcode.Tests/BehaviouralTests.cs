@@ -6,48 +6,228 @@ namespace IanFNelson.Postcode.Tests
     [TestFixture]
     public class BehaviouralTests
     {
-        //#region OutCode tests
+        [TestCase("TDCU 1ZZ", "TDCU", "1ZZ")]
+        [TestCase("BFPO 101", "BFPO", "101")]
+        [TestCase("SAN TA1", "SAN", "TA1")]
+        [TestCase("GIR 0AA", "GIR", "0AA")]
+        [TestCase("LS25", "LS25", null)]
+        [TestCase("GIR", "GIR", null)]
+        [TestCase("BFPO", "BFPO", null)]
+        [TestCase("TDCU", "TDCU", null)]
+        public void Parse_CanCombineOptions(string input, string expectedOutcode, string expectedIncode)
+        {
+            // Arrange
+            PostcodeParseOptions options = PostcodeParseOptions.IncodeOptional ^
+                                           PostcodeParseOptions.MatchBfpo ^
+                                           PostcodeParseOptions.MatchGirobank ^
+                                           PostcodeParseOptions.MatchOverseasTerritories ^
+                                           PostcodeParseOptions.MatchSanta;
 
-        //[Test]
-        //public void Parse_ValidPartialPostCode_ReturnInputValueOutCode()
-        //{
-        //    // Arrange
-        //    const string expected = "PO8";
+            // Act
+            Postcode output = Postcode.Parse(input, options);
 
-        //    // Act
-        //    var actual = Postcode.Parse(expected);
+            // Assert
+            Assert.That(output.InCode, Is.EqualTo(expectedIncode));
+            Assert.That(output.OutCode, Is.EqualTo(expectedOutcode));
+        }
 
-        //    // Assert
-        //    Assert.AreEqual(expected, actual.OutCode);
-        //}
+        [Test]
+        public void Parse_BfpoAllowed_IsValid()
+        {
+            // Arrange
+            const string bfpoPostcode = "BFPO 805";
 
-        //[Test]
-        //[ExpectedException(typeof(FormatException))]
-        //public void Parse_InvalidPartialPostCode_OriginalValueNotReturned()
-        //{
-        //    // Arrange
-        //    const string expected = "PZ7";
+            // Act
+            Postcode output = Postcode.Parse(bfpoPostcode, PostcodeParseOptions.MatchBfpo);
 
-        //    // Act
-        //    var actual = Postcode.Parse(expected);
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("TDCU"));
+            Assert.That(output.InCode, Is.EqualTo("1ZZ"));
+        }
 
-        //    // Assert
-        //    Assert.AreNotEqual(expected, actual.OutCode);
-        //}
+        [Test]
+        public void Parse_BfpoNotAllowed_IsInvalid()
+        {
+            // Arrange
+            const string bfpoPostcode = "BFPO 805";
 
-        //[Test]
-        //public void Parse_ValidPostCode_ReturnInputValue()
-        //{
-        //    // Arrange
-        //    const string expected = "PO8 5PQ";
+            // Act
+            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(bfpoPostcode));
+        }
 
-        //    // Act
-        //    var actual = Postcode.Parse(expected);
+        [Test]
+        public void Parse_GirobankAllowed_IsValid()
+        {
+            // Arrange
+            const string girobankPostcode = "GIR 0AA";
 
-        //    // Assert
-        //    Assert.AreEqual(expected, actual.ToString());
-        //}
+            // Act
+            Postcode output = Postcode.Parse(girobankPostcode);
 
-        //#endregion
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("GIR"));
+            Assert.That(output.InCode, Is.EqualTo("0AA"));
+        }
+
+        [Test]
+        public void Parse_GirobankNotAllowed_IsInvalid()
+        {
+            // Arrange
+            const string girobankPostcode = "GIR 0AA";
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(girobankPostcode));
+        }
+
+        [Test]
+        public void Parse_InvalidPostcodeContainsValidPostcodeAsSubstring_IsInvalid()
+        {
+            // Arrange
+            const string input = "QS81 8SH";
+            // "S81 8SH" is valid. "QS81 8SH" looks valid at first glance, 
+            //  but isn't as postcodes can't start with Q.
+            Postcode output;
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+        }
+
+        [Test]
+        public void Parse_MixedCaseInput_OutputIsUppercase()
+        {
+            // Arrange
+            const string input = "ls25 6Lg";
+
+            // Act
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("LS25"));
+            Assert.That(output.InCode, Is.EqualTo("6LG"));
+        }
+
+        [Test]
+        public void Parse_NonWhitespaceNonAlphanumericSurroundsInput_IsInvalid()
+        {
+            // Arrange
+            const string input = "%LS25 6LG\"";
+            Postcode output;
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+        }
+
+        [Test]
+        public void Parse_OutcodeOnlyPassedIncodeOptionalSet_IsValid()
+        {
+            // Arrange
+            const string input = "LS25";
+
+            // Act
+            Postcode output = Postcode.Parse(input, PostcodeParseOptions.IncodeOptional);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo(input));
+            Assert.That(output.InCode, Is.Null);
+        }
+
+        [Test]
+        public void Parse_OutcodeOnlyPassed_NotValidByDefault()
+        {
+            // Arrange
+            const string input = "LS25";
+            Postcode output;
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+        }
+
+        [Test]
+        public void Parse_OverseasTerritoriesAllowed_IsValid()
+        {
+            // Arrange
+            const string overseasTerritoryPostcode = "TDCU 1ZZ";
+
+            // Act
+            Postcode output = Postcode.Parse(overseasTerritoryPostcode, PostcodeParseOptions.MatchOverseasTerritories);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("TDCU"));
+            Assert.That(output.InCode, Is.EqualTo("1ZZ"));
+        }
+
+        [Test]
+        public void Parse_OverseasTerritoriesNotAllowed_IsInvalid()
+        {
+            // Arrange
+            const string overseasTerritoryPostcode = "TDCU 1ZZ";
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(overseasTerritoryPostcode));
+        }
+
+        [Test]
+        public void Parse_SantaAllowed_IsValid()
+        {
+            // Arrange
+            const string santaPostcode = "SAN TA1";
+
+            // Act
+            Postcode output = Postcode.Parse(santaPostcode, PostcodeParseOptions.MatchSanta);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("TDCU"));
+            Assert.That(output.InCode, Is.EqualTo("1ZZ"));
+        }
+
+        [Test]
+        public void Parse_SantaNotAllowed_IsInvalid()
+        {
+            // Arrange
+            const string santaPostcode = "SAN TA1";
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => Postcode.Parse(santaPostcode));
+        }
+
+        [Test]
+        public void Parse_ValidPostcodeAtStartOfLongerString_IsInvalid()
+        {
+            // Arrange
+            const string input = "M1 1AAA";
+            // "M1 1AA" is valid. "M1 1AAA" is not.
+            Postcode output;
+
+            // Act
+            var ex = Assert.Throws<FormatException>(() => output = Postcode.Parse(input));
+        }
+
+        [Test]
+        public void Parse_ValidPostcode_ReturnedObjectHasOutcodeAndIncodeSet()
+        {
+            // Arrange
+            const string input = "LS25 6LG";
+
+            // Act
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("LS25"));
+            Assert.That(output.InCode, Is.EqualTo("6LG"));
+        }
+
+        [Test]
+        public void Parse_WhitespaceSurroundsValidInput_WhitespaceIsStripped()
+        {
+            // Arrange
+            const string input = "  LS25 6LG ";
+
+            // Act
+            Postcode output = Postcode.Parse(input);
+
+            // Assert
+            Assert.That(output.OutCode, Is.EqualTo("LS25"));
+            Assert.That(output.InCode, Is.EqualTo("6LG"));
+        }
     }
 }
