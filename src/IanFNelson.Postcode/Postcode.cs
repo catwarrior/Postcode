@@ -15,11 +15,11 @@ namespace IanFNelson.Postcode
         private const string RegexBs7666Outer =
             "(?<outCode>^[A-PR-UWYZ]([0-9][0-9A-HJKPS-UW]?|[A-HK-Y][0-9][0-9ABEHMNPRV-Y]?))";
         private const string RegexBs7666Inner = "(?<inCode>[0-9][ABD-HJLNP-UW-Z]{2})";
-        private const string RegexBs7666Full = RegexBs7666Outer + RegexBs7666Inner;
+        private const string RegexBs7666Full = RegexBs7666Outer + RegexBs7666Inner + "$";
         private static readonly string RegexBs7666OuterStandAlone = String.Format("{0}\\s*$", RegexBs7666Outer);
         private const string RegexBfpoOuter = "(?<outCode>BFPO)";
         private const string RegexBfpoInner = "(?<inCode>[0-9]{1,4})";
-        private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner;
+        private const string RegexBfpoFull = RegexBfpoOuter + RegexBfpoInner + "$";
         private static readonly string RegexBfpoOuterStandalone = String.Format("{0}\\s*$", RegexBfpoOuter);
         private static readonly string[,] OverseasTerritories = 
         {

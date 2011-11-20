@@ -220,15 +220,14 @@ namespace IanFNelson.Postcode.Tests
             Assert.Throws<FormatException>(() => Postcode.Parse(santaPostcode));
         }
 
-        [Test]
-        public void Parse_ValidPostcodeAtStartOfLongerString_IsInvalid()
+        [TestCase("M1 1AAA", PostcodeParseOptions.None)]
+        [TestCase("BFPO 1234A", PostcodeParseOptions.MatchBfpo)]
+        [TestCase("TDCU 1ZZA", PostcodeParseOptions.MatchOverseasTerritories)]
+        [TestCase("S81A", PostcodeParseOptions.IncodeOptional)]
+        public void Parse_ValidPostcodeAtStartOfLongerString_IsInvalid(string invalidPostcode, PostcodeParseOptions options)
         {
-            // Arrange
-            const string input = "M1 1AAA";
-            // "M1 1AA" is valid. "M1 1AAA" is not.
-
             // Act
-            Assert.Throws<FormatException>(() => Postcode.Parse(input));
+            Assert.Throws<FormatException>(() => Postcode.Parse(invalidPostcode, options), string.Format("No exception thrown when parsing {0}", invalidPostcode));
         }
 
         [Test]
