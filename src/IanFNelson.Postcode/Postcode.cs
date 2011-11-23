@@ -111,7 +111,7 @@ namespace IanFNelson.Postcode
             if (string.IsNullOrWhiteSpace(value)) return false;
 
             // uppercase input and strip undesirable characters
-            value = Regex.Replace(value.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
+            value = Regex.Replace(value.ToUpperInvariant(), "[^A-Z0-9]", string.Empty, RegexOptions.Compiled);
 
             // Work through different options in turn until we have a match.
             return (TryParseBs7666(value, options, ref result) ||
@@ -123,8 +123,50 @@ namespace IanFNelson.Postcode
 
         private static bool TryParseBs7666(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
         {
-            // Try to match full standard postcode
-            Match fullMatch = Regex.Match(sanitizedInput, RegexBs7666Full);
+            return TryParseRegex(sanitizedInput, options, ref result, RegexBs7666Full, RegexBs7666OuterStandAlone);
+        }
+
+        private static bool TryParseBfpo(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
+        {
+            if ((options & PostcodeParseOptions.MatchBfpo) == PostcodeParseOptions.None) return false;
+
+            return TryParseRegex(sanitizedInput, options, ref result, RegexBfpoFull, RegexBfpoOuterStandalone);
+        }
+
+        private static bool TryParseOverseasTerritories(string sanitizedInput, PostcodeParseOptions options,
+                                                        ref Postcode result)
+        {
+            if ((options & PostcodeParseOptions.MatchOverseasTerritories) == PostcodeParseOptions.None) return false;
+
+            // Loop through overseas territories
+            for (var i = 0; i < OverseasTerritories.GetLength(0); i++)
+            {
+                var match = TryParseHardcoded(sanitizedInput, options, ref result, OverseasTerritories[i, 0],
+                                              OverseasTerritories[i, 1]);
+
+                if (match) return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseGiroBank(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
+        {
+            if ((options & PostcodeParseOptions.MatchGirobank) == PostcodeParseOptions.None) return false;
+
+            return TryParseHardcoded(sanitizedInput, options, ref result, "GIR", "0AA");
+        }
+
+        private static bool TryParseSanta(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
+        {
+            if ((options & PostcodeParseOptions.MatchSanta) == PostcodeParseOptions.None) return false;
+
+            return TryParseHardcoded(sanitizedInput, options, ref result, "SAN", "TA1");
+        }
+
+        private static bool TryParseRegex(string sanitizedInput, PostcodeParseOptions options, ref Postcode result, string fullMatchPattern, string outerMatchPattern)
+        {
+            Match fullMatch = Regex.Match(sanitizedInput, fullMatchPattern, RegexOptions.Compiled);
             if (fullMatch.Success)
             {
                 result.OutCode = fullMatch.Groups["outCode"].Value;
@@ -132,10 +174,9 @@ namespace IanFNelson.Postcode
                 return true;
             }
 
-            // Try to match outer standard postcode only
             if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
             {
-                Match outerMatch = Regex.Match(sanitizedInput, RegexBs7666OuterStandAlone);
+                Match outerMatch = Regex.Match(sanitizedInput, outerMatchPattern, RegexOptions.Compiled);
                 if (outerMatch.Success)
                 {
                     result.OutCode = outerMatch.Groups["outCode"].Value;
@@ -145,106 +186,19 @@ namespace IanFNelson.Postcode
             return false;
         }
 
-        private static bool TryParseBfpo(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
+        private static bool TryParseHardcoded(string sanitizedInput, PostcodeParseOptions options, ref Postcode result, string outer, string inner)
         {
-            if ((options & PostcodeParseOptions.MatchBfpo) == PostcodeParseOptions.None) return false;
-
-            // Try to match full BFPO postcode
-            Match bfpoFullMatch = Regex.Match(sanitizedInput, RegexBfpoFull);
-            if (bfpoFullMatch.Success)
+            if (sanitizedInput == outer + inner)
             {
-                result.OutCode = bfpoFullMatch.Groups["outCode"].Value;
-                result.InCode = bfpoFullMatch.Groups["inCode"].Value;
+                result.OutCode = outer;
+                result.InCode = inner;
                 return true;
             }
 
-            // Try to match outer BFPO postcode
-            if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
+            if ((sanitizedInput == outer) && ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None))
             {
-                Match bfpoOuterMatch = Regex.Match(sanitizedInput, RegexBfpoOuterStandalone);
-                if (bfpoOuterMatch.Success)
-                {
-                    result.OutCode = bfpoOuterMatch.Groups["outCode"].Value;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TryParseOverseasTerritories(string sanitizedInput, PostcodeParseOptions options,
-                                                        ref Postcode result)
-        {
-            if ((options & PostcodeParseOptions.MatchOverseasTerritories) == PostcodeParseOptions.None) return false;
-
-            // Loop through exceptions to the rule
-            for (int i = 0; i < OverseasTerritories.GetLength(0); i++)
-            {
-                // Check for a full match
-                if (sanitizedInput == string.Concat(OverseasTerritories[i, 0], OverseasTerritories[i, 1]))
-                {
-                    result.OutCode = OverseasTerritories[i, 0];
-                    result.InCode = OverseasTerritories[i, 1];
-                    return true;
-                }
-
-                // Check for partial match only
-                if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
-                {
-                    if (sanitizedInput == OverseasTerritories[i, 0])
-                    {
-                        result.OutCode = OverseasTerritories[i, 0];
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TryParseGiroBank(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
-        {
-            if ((options & PostcodeParseOptions.MatchGirobank) != PostcodeParseOptions.None)
-            {
-                if (sanitizedInput == "GIR0AA")
-                {
-                    result.OutCode = "GIR";
-                    result.InCode = "0AA";
-                    return true;
-                }
-
-                if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
-                {
-                    if (sanitizedInput == "GIR")
-                    {
-                        result.OutCode = "GIR";
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TryParseSanta(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
-        {
-            if ((options & PostcodeParseOptions.MatchSanta) != PostcodeParseOptions.None)
-            {
-                if (sanitizedInput == "SANTA1")
-                {
-                    result.OutCode = "SAN";
-                    result.InCode = "TA1";
-                    return true;
-                }
-
-                if ((options & PostcodeParseOptions.IncodeOptional) != PostcodeParseOptions.None)
-                {
-                    if (sanitizedInput == "SAN")
-                    {
-                        result.OutCode = "SAN";
-                        return true;
-                    }
-                }
+                result.OutCode = outer;
+                return true;
             }
 
             return false;
