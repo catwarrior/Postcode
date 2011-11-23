@@ -110,18 +110,15 @@ namespace IanFNelson.Postcode
             // Guard clause - check for null or whitespace
             if (string.IsNullOrWhiteSpace(value)) return false;
 
-            // Copy the input before messing with it
-            string input = value;
-
             // uppercase input and strip undesirable characters
-            input = Regex.Replace(input.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
+            value = Regex.Replace(value.ToUpperInvariant(), "[^A-Z0-9]", string.Empty);
 
             // Work through different options in turn until we have a match.
-            return (TryParseBs7666(input, options, ref result) ||
-                    TryParseBfpo(input, options, ref result) ||
-                    TryParseOverseasTerritories(input, options, ref result) ||
-                    TryParseGiroBank(input, options, ref result) ||
-                    TryParseSanta(input, options, ref result));
+            return (TryParseBs7666(value, options, ref result) ||
+                    TryParseBfpo(value, options, ref result) ||
+                    TryParseOverseasTerritories(value, options, ref result) ||
+                    TryParseGiroBank(value, options, ref result) ||
+                    TryParseSanta(value, options, ref result));
         }
 
         private static bool TryParseBs7666(string sanitizedInput, PostcodeParseOptions options, ref Postcode result)
