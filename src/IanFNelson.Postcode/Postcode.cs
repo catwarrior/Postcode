@@ -7,7 +7,7 @@ namespace IanFNelson.Postcode
     /// Represents a United Kingdom postcode.
     /// </summary>
     /// <remarks>
-    /// For more information, see http://ianfnelson.com/blog/postcodestruct
+    /// For more information, see http://blog.iannelson.systems/a-c-postcode-struct-with-parser/
     /// </remarks>
     [Serializable]
     public struct Postcode
