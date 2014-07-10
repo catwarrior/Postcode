@@ -24,3 +24,5 @@ build
 TestResult.xml
 *crunchproject*
 *crunchsolution*
+
+NDependOut
